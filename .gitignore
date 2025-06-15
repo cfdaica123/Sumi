@@ -1,0 +1,25 @@
+# Ignore files containing sensitive information
+config.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+
+# VSCode settings
+.vscode/
+
+# Ignore environment files
+.env.dev
+venv/
+.env
+
+# Log or temporary data
+*.log
+
+.env
+config.json
+__pycache__/
+
+cookies.txt
