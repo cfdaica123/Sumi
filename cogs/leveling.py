@@ -1,7 +1,6 @@
-from discord.ext import commands
-import discord
-import json
 import os
+import json
+from discord.ext import commands
 
 LEVEL_FILE = "level_data.json"
 
@@ -12,9 +11,17 @@ class Leveling(commands.Cog):
 
     def load_levels(self):
         if not os.path.isfile(LEVEL_FILE):
+            with open(LEVEL_FILE, "w") as f:
+                json.dump({}, f)
             return {}
-        with open(LEVEL_FILE, "r") as f:
-            return json.load(f)
+        try:
+            with open(LEVEL_FILE, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print("⚠️ level_data.json broken, rebuild.")
+            with open(LEVEL_FILE, "w") as f:
+                json.dump({}, f)
+            return {}
 
     def save_levels(self):
         with open(LEVEL_FILE, "w") as f:
@@ -23,10 +30,11 @@ class Leveling(commands.Cog):
     def add_xp(self, user_id: str, xp: int = 5):
         user = self.levels.get(user_id, {"xp": 0, "level": 1})
         user["xp"] += xp
-        # Simple level-up logic
+
         while user["xp"] >= user["level"] * 100:
             user["xp"] -= user["level"] * 100
             user["level"] += 1
+
         self.levels[user_id] = user
         self.save_levels()
         return user["level"]
@@ -40,13 +48,13 @@ class Leveling(commands.Cog):
         new_level = self.add_xp(user_id)
 
         if new_level > old_level:
-            await message.channel.send(f"🎉 {message.author.mention} leveled up {new_level}!")
+            await message.channel.send(f"🎉 {message.author.mention} level up {new_level} there you go!")
 
     @commands.command(name="level")
     async def level(self, ctx):
         user_id = str(ctx.author.id)
         data = self.levels.get(user_id, {"xp": 0, "level": 1})
-        await ctx.send(f"🧬 {ctx.author.mention}, current level: {data['level']} with {data['xp']} XP.")
+        await ctx.send(f"🧬 {ctx.author.mention}, currently at level {data['level']} with {data['xp']} XP.")
 
 async def setup(bot):
     await bot.add_cog(Leveling(bot))
